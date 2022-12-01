@@ -16,3 +16,6 @@ class Pet(models.Model):
         choices=SexPet.choices,
         default=SexPet.NOT_INFORMED,
     )
+
+    def __repr__(self) -> str:
+        return f"<Pet [{self.id}] - {self.name} {self.age}"
