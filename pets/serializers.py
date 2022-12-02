@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from pets.models import SexPet
+from pets.models import SexPet, Pet
 from groups.serializers import GroupSerializer
 from traits.serializers import TraitSerializer
+from groups.models import Group
+from traits.models import Trait
 
 
 class PetSerializer(serializers.Serializer):
@@ -14,5 +16,45 @@ class PetSerializer(serializers.Serializer):
         default=SexPet.NOT_INFORMED,
     )
 
-    group = GroupSerializer(read_only=True)
-    traits = TraitSerializer(read_only=True, many=True)
+    group = GroupSerializer()
+    traits = TraitSerializer(many=True)
+    # traits_count = len(*traits)
+
+    def create(self, validated_data: dict) -> Pet:
+
+        group_data = validated_data.pop("group")
+        trait_data = validated_data.pop("traits")
+
+        group_obj = Group.objects.get_or_create(**group_data)[0]
+
+        newPet = Pet.objects.create(**validated_data, group=group_obj)
+
+        for trait in trait_data:
+            trait_obj = Trait.objects.get_or_create(**trait)[0]
+            newPet.traits.add(trait_obj)
+
+        return newPet
+
+    def update(self, istance, validated_data: dict) -> Pet:
+        group_data: dict = validated_data.pop("group", None)
+        trait_data = validated_data.pop("traits", None)
+
+        if group_data is not None:
+            group_obj, created = Group.objects.get_or_create(pets=istance)
+            for key, value in group_data.items():
+                setattr(group_obj, key, value)
+            group_obj.save()
+
+        if trait_data is not None:
+            list = []
+            for trait in trait_data:
+                trait_obj = Trait.objects.get_or_create(**trait)[0]
+                list.append(trait_obj)
+            istance.traits.set(list)
+
+        for key, value in validated_data.items():
+            setattr(istance, key, value)
+
+        istance.save()
+
+        return istance

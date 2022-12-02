@@ -16,12 +16,9 @@ class PetView(APIView):
     def post(self, request: Request) -> Response:
         serializer = PetSerializer(data=request.data)
 
-        if not serializer.is_valid():
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
 
-        pet = Pet.objects.create(**serializer.validated_data)
-
-        serializer = PetSerializer(pet)
+        serializer.save()
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
@@ -39,7 +36,12 @@ class PetDetailView(APIView):
     def patch(self, request: Request, pet_id: int) -> Response:
 
         pet = get_object_or_404(Pet, id=pet_id)
-        serializer = PetSerializer(pet)
+
+        serializer = PetSerializer(pet, data=request.data, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
 
         return Response(serializer.data)
 

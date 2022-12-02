@@ -17,5 +17,14 @@ class Pet(models.Model):
         default=SexPet.NOT_INFORMED,
     )
 
+    group = models.ForeignKey(
+        "groups.Group",
+        on_delete=models.CASCADE,
+        related_name="pets",
+        null=True,
+    )
+
+    traits = models.ManyToManyField("traits.Trait", related_name="traits")
+
     def __repr__(self) -> str:
         return f"<Pet [{self.id}] - {self.name} {self.age}"
