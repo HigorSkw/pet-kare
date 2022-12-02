@@ -18,7 +18,20 @@ class PetSerializer(serializers.Serializer):
 
     group = GroupSerializer()
     traits = TraitSerializer(many=True)
-    # traits_count = len(*traits)
+
+    traits_count = serializers.SerializerMethodField()
+
+    # Estudar os serialiazer.methodfield
+
+    def get_traits_count(self, obj):
+
+        count = 0
+
+        for number in obj.traits.all():
+
+            count = count + 1
+
+        return count
 
     def create(self, validated_data: dict) -> Pet:
 
